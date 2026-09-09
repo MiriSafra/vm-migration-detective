@@ -146,7 +146,7 @@ func (i *VirtInspector) attemptInspect(
 				"base_disk_path": baseDiskPath,
 			}).Debug("Starting NBDkit session for disk")
 
-			nbdkitSession, err := OpenWithNBDKitVDDK(
+			nbdkitSession, err := OpenWithNBDKit(
 				openCtx,
 				diskInfo.VMMoref,
 				diskInfo.SnapshotMoref,

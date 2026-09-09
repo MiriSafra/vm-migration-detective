@@ -80,7 +80,7 @@ func (i *VirtV2vInspector) Inspect(
 	}()
 
 	for index, baseDiskPath := range baseDiskPaths {
-		session, openErr := OpenWithNBDKitVDDK(
+		session, openErr := OpenWithNBDKit(
 			openCtx,
 			vmMoref,
 			snapshotMoref,

@@ -60,7 +60,7 @@ func resolveNBDKitPluginFromPaths(vddkLibDir string, nfcPluginPaths []string) (s
 	return "", fmt.Errorf("neither VDDK library directory %q nor an nbdkit NFC plugin was found", vddkLibDir)
 }
 
-// OpenWithNBDKitVDDK opens a VMware snapshot using nbdkit with VDDK plugin directly
+// OpenWithNBDKit opens a VMware snapshot using the available nbdkit transport.
 // Parameters:
 //   - vmMoref: VM managed object reference (e.g., "vm-123")
 //   - snapshotMoref: Snapshot managed object reference (e.g., "snapshot-456")
@@ -69,7 +69,7 @@ func resolveNBDKitPluginFromPaths(vddkLibDir string, nfcPluginPaths []string) (s
 //   - username: vCenter username
 //   - password: vCenter password
 //   - logger: Logger instance
-func OpenWithNBDKitVDDK(
+func OpenWithNBDKit(
 	ctx context.Context,
 	vmMoref string,
 	snapshotMoref string,
