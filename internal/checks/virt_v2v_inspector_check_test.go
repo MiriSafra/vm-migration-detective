@@ -9,18 +9,16 @@ import (
 )
 
 type fakeVirtV2VInspector struct {
-	err       error
-	called    bool
-	sslVerify string
+	err    error
+	called bool
 }
 
 func (f *fakeVirtV2VInspector) InspectWithVirt(context.Context, string, string, *types.SnapshotDiskInfo) (*types.VirtInspectorXML, error) {
 	return nil, nil
 }
 
-func (f *fakeVirtV2VInspector) InspectWithVirtV2v(_ context.Context, _ string, _ string, _ *types.SnapshotDiskInfo, sslVerify string) (*types.VirtV2VInspectorXML, error) {
+func (f *fakeVirtV2VInspector) InspectWithVirtV2v(_ context.Context, _ string, _ string, _ *types.SnapshotDiskInfo) (*types.VirtV2VInspectorXML, error) {
 	f.called = true
-	f.sslVerify = sslVerify
 	return nil, f.err
 }
 
@@ -61,8 +59,8 @@ func TestVirtV2VInspectorCheck(t *testing.T) {
 			} else if len(result.Concerns) != 1 || result.Concerns[0].ID != tt.wantConcernID {
 				t.Fatalf("Concerns = %#v, want concern %q", result.Concerns, tt.wantConcernID)
 			}
-			if !inspector.called || inspector.sslVerify != "no_verify=1" {
-				t.Fatalf("inspector call = called:%v sslVerify:%q", inspector.called, inspector.sslVerify)
+			if !inspector.called {
+				t.Fatalf("inspector was not called")
 			}
 		})
 	}

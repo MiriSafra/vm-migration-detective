@@ -16,7 +16,6 @@ func (c *VirtV2VInspectorCheck) Run(params InspectionParams) CheckResult {
 		params.VMMoref,
 		params.SnapshotMoref,
 		params.DiskInfo,
-		"no_verify=1",
 	)
 	if err == nil {
 		return CheckResult{Passed: true}

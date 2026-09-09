@@ -46,7 +46,6 @@ func (i *VirtV2vInspector) Inspect(
 	username string,
 	password string,
 	diskInfo *types.SnapshotDiskInfo,
-	_ string,
 ) (*types.VirtV2VInspectorXML, error) {
 	if diskInfo == nil {
 		return nil, fmt.Errorf("snapshot disk info is required")
