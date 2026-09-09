@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/kubev2v/vm-migration-detective/internal/cmdbuilder"
-	"github.com/kubev2v/vm-migration-detective/internal/vsphere"
 	"github.com/kubev2v/vm-migration-detective/pkg/types"
 	"github.com/sirupsen/logrus"
 )
@@ -429,18 +428,5 @@ func (i *VirtInspector) InspectLocal(ctx context.Context, diskArgs []string) (*t
 
 // getBaseDiskPathsFromVSphere queries vSphere to get base disk paths by traversing the backing chain
 func (i *VirtInspector) getBaseDiskPathsFromVSphere(ctx context.Context, vcenterURL, username, password, vmMoref string) ([]string, error) {
-	// Import the vsphere package
-	vsphereClient, err := vsphere.NewClient(ctx, vcenterURL, username, password, true, i.logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to vSphere: %w", err)
-	}
-	defer vsphereClient.Close()
-
-	// Query base disk paths
-	baseDiskPaths, err := vsphereClient.GetBaseDiskPaths(ctx, vmMoref)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get base disk paths: %w", err)
-	}
-
-	return baseDiskPaths, nil
+	return queryBaseDiskPaths(ctx, vcenterURL, username, password, vmMoref, i.logger)
 }

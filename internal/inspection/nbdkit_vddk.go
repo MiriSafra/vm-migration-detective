@@ -32,6 +32,34 @@ type NBDKitSession struct {
 	stdoutBuf    *bytes.Buffer
 }
 
+const (
+	nfcPluginInVDDKImage = "/opt/nbdkit-nfc-plugin.so"
+	nfcPluginSystemPath  = "/usr/lib64/nbdkit/plugins/nbdkit-nfc-plugin.so"
+)
+
+// resolveNBDKitPlugin selects the transport available in the inspection pod.
+// The go-NFC init image is mounted at /opt and does not contain VMware VDDK.
+func resolveNBDKitPlugin(vddkLibDir string) (string, error) {
+	return resolveNBDKitPluginFromPaths(vddkLibDir, []string{
+		nfcPluginInVDDKImage,
+		nfcPluginSystemPath,
+	})
+}
+
+func resolveNBDKitPluginFromPaths(vddkLibDir string, nfcPluginPaths []string) (string, error) {
+	if info, err := os.Stat(vddkLibDir); err == nil && info.IsDir() {
+		return "vddk", nil
+	}
+
+	for _, path := range nfcPluginPaths {
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			return path, nil
+		}
+	}
+
+	return "", fmt.Errorf("neither VDDK library directory %q nor an nbdkit NFC plugin was found", vddkLibDir)
+}
+
 // OpenWithNBDKitVDDK opens a VMware snapshot using nbdkit with VDDK plugin directly
 // Parameters:
 //   - vmMoref: VM managed object reference (e.g., "vm-123")
@@ -73,6 +101,11 @@ func OpenWithNBDKitVDDK(
 	if thumbprint != "" && logger != nil {
 		logger.WithField("thumbprint", thumbprint).Debug("Got vCenter thumbprint")
 	}
+	nbdkitPlugin, err := resolveNBDKitPlugin(vddk.GetLibDir())
+	if err != nil {
+		return nil, err
+	}
+
 	// Create temporary Unix socket for nbdkit (more reliable than TCP port)
 	socketPath := filepath.Join("/tmp", fmt.Sprintf("nbdkit-%s.sock", uuid.New().String()))
 
@@ -80,17 +113,6 @@ func OpenWithNBDKitVDDK(
 	passwordFile, err := createNBDKitPasswordFile(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create password file: %w", err)
-	}
-
-	vddkLibDir := vddk.GetLibDir()
-	nbdkitPlugin := "vddk"
-	if info, err := os.Stat(vddkLibDir); err != nil || !info.IsDir() {
-		nbdkitPlugin = "/usr/lib64/nbdkit/plugins/nbdkit-nfc-plugin.so"
-		if _, err := os.Stat("/opt/nbdkit-nfc-plugin.so"); err == nil {
-			nbdkitPlugin = "/opt/nbdkit-nfc-plugin.so"
-		} else if _, err := os.Stat(nbdkitPlugin); err != nil {
-			return nil, fmt.Errorf("VDDK library directory or nbdkit-nfc plugin not found")
-		}
 	}
 
 	nbdkitCmd := cmdbuilder.New().
@@ -106,7 +128,7 @@ func OpenWithNBDKitVDDK(
 		Add(fmt.Sprintf("vm=moref=%s", vmMoref)).
 		Add(fmt.Sprintf("snapshot=%s", snapshotMoref)).
 		Add(fmt.Sprintf("file=%s", baseDiskPath)).
-		AddIf(nbdkitPlugin == "vddk", fmt.Sprintf("libdir=%s", vddkLibDir)).
+		AddIf(nbdkitPlugin == "vddk", fmt.Sprintf("libdir=%s", vddk.GetLibDir())).
 		AddIf(thumbprint != "", fmt.Sprintf("thumbprint=%s", thumbprint))
 
 	if logger != nil {

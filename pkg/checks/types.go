@@ -36,6 +36,8 @@ const (
 	CheckTypeFstab CheckType = "fstab"
 	// CheckTypeDiskAccess validates that the disk is accessible (not encrypted)
 	CheckTypeDiskAccess CheckType = "disk-access"
+	// CheckTypeVirtV2VInspector validates the guest with virt-v2v-inspector
+	CheckTypeVirtV2VInspector CheckType = "virt-v2v-inspector"
 )
 
 // AllCheckTypes returns all available check types
@@ -43,6 +45,8 @@ func AllCheckTypes() []CheckType {
 	return []CheckType{
 		CheckTypeFstab,
 		CheckTypeDiskAccess,
+		// Keep the more expensive conversion preflight after the basic checks.
+		CheckTypeVirtV2VInspector,
 	}
 }
 

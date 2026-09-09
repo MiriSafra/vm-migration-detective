@@ -194,6 +194,7 @@ detector, err := vmdetect.NewDetector(vmdetect.DetectorConfig{
 
 - **CheckTypeFstab**: Validates /etc/fstab entries for migration compatibility
 - **CheckTypeDiskAccess**: Verifies disk accessibility (detects encrypted disks)
+- **CheckTypeVirtV2VInspector**: Runs virt-v2v-inspector as the final preflight check
 
 ## Development
 

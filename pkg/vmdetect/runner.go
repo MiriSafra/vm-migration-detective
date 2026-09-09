@@ -181,6 +181,15 @@ func (r *Detector) Detect(params DetectParams, checkTypes ...checks.CheckType) (
 	allPassed := true
 
 	for _, checkType := range checksToRun {
+		// virt-v2v-inspector is the expensive final preflight. Do not start it
+		// after an earlier check has already found a blocking concern.
+		if checkType == checks.CheckTypeVirtV2VInspector && !allPassed {
+			if r.logger != nil {
+				r.logger.Info("Skipping virt-v2v-inspector because an earlier check failed")
+			}
+			continue
+		}
+
 		var check internalchecks.Check
 		var result checks.CheckResult
 
@@ -189,6 +198,8 @@ func (r *Detector) Detect(params DetectParams, checkTypes ...checks.CheckType) (
 			check = internalchecks.NewFstabCheck()
 		case checks.CheckTypeDiskAccess:
 			check = internalchecks.NewDiskAccessCheck()
+		case checks.CheckTypeVirtV2VInspector:
+			check = internalchecks.NewVirtV2VInspectorCheck()
 		default:
 			// Unknown check type, skip
 			continue
